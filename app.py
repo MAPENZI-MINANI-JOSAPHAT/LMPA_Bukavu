@@ -6,10 +6,12 @@ import plotly.express as px
 
 st.set_page_config(
     page_title="LMPA Bukavu",
-    page_icon="logo.jpg",
+    page_icon="assets/logo.jpg"
     layout="centered", # "centered" est bien mieux pour les mobiles que "wide"
     initial_sidebar_state="collapsed" # La barre latérale sera fermée par défaut au démarrage
 )
+# Affichage Logo
+st.image("assets/logo.jpg", width=120)
 # Custom Institutional CSS Styling
 st.markdown("""
     <style>
