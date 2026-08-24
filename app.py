@@ -14,22 +14,26 @@ st.markdown("""
     <style>
     .main { background-color: #F8F9FA; }
     .stMetric {
-        background-color: #FFFFFF;
+        background-color: #FFFFFF !important;
         padding: 16px;
         border-radius: 4px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         border-top: 3px solid #002B49;
+    }
+    .stMetric * {
         color: #1E293B !important;
     }
     .institutional-box {
-        background-color: #FFFFFF;
+        background-color: #FFFFFF !important;
         padding: 24px;
-        border-radius: 6px;
-        border: 1px solid #E2E8F0;
-        margin-bottom: 20px;
+        border-radius: 4px;
+        border-left: 4px solid #002849;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05)
+        margin-bottom: 24px;
     }
-    h1, h2, h3 { color: #002B49; font-family: 'Georgia', serif; }
-    </style>
+    .institutional-box p, .institutional-box h1, .institutional-box h2, .institutional-box h3 {
+        color: #1E293B !important;
+    }
 """, unsafe_allow_html=True)
 
 # Helper function to load local images safely
