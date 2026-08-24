@@ -1,16 +1,14 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly.express as px
 import os
+import plotly.express as px
 
-# 1. Page Configuration
 st.set_page_config(
-    page_title="LMPA - Local Market Price Analytics Observatory",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    page_title="LMPA Bukavu",
+    layout="centered", # "centered" est bien mieux pour les mobiles que "wide"
+    initial_sidebar_state="collapsed" # La barre latérale sera fermée par défaut au démarrage
 )
-
 # Custom Institutional CSS Styling
 st.markdown("""
     <style>
@@ -21,6 +19,7 @@ st.markdown("""
         border-radius: 4px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         border-top: 3px solid #002B49;
+        color: #1E293B !important;
     }
     .institutional-box {
         background-color: #FFFFFF;
