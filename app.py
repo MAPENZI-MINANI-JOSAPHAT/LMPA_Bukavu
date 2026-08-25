@@ -6,9 +6,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-# -----------------------------------------------------------------------------
-# 1. PAGE CONFIGURATION & INSTITUTIONAL STYLING
-# -----------------------------------------------------------------------------
+# 1. PAGE CONFIGURATION & STYLING
 st.set_page_config(
     page_title="LMPA Quantitative Observatory | Bukavu",
     page_icon="assets/logo.jpg",
@@ -21,20 +19,17 @@ st.markdown("""
     #MainMenu, footer, header {visibility: hidden;}
     
     .academic-card {
-        background-color: rgba(255, 255, 255, 0.04) !important;
+        background-color: rgba(255, 255, 255, 0.05) !important;
         border-left: 4px solid #0284C7;
-        padding: 20px;
+        padding: 18px;
         border-radius: 8px;
         margin-bottom: 20px;
-        backdrop-filter: blur(8px);
+        backdrop-filter: blur(5px);
     }
     
-    .metric-container {
-        background-color: rgba(2, 132, 199, 0.08);
-        border: 1px solid rgba(2, 132, 199, 0.2);
-        padding: 15px;
-        border-radius: 6px;
-        text-align: center;
+    .academic-card h4 {
+        margin-top: 0;
+        font-weight: 700;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -56,9 +51,7 @@ st.markdown("""
 """)
 st.markdown("---")
 
-# -----------------------------------------------------------------------------
-# 2. LONGITUDINAL DATA ENGINE (HIGH-FREQUENCY SYNTHETIC SYSTEM)
-# -----------------------------------------------------------------------------
+# 2. LONGITUDINAL DATA ENGINE
 @st.cache_data
 def generate_master_dataset():
     dates = pd.date_range(start="2020-01-01", end="2026-08-01", freq="MS")
@@ -109,25 +102,21 @@ df = generate_master_dataset()
 
 # Sidebar Controls
 st.sidebar.title("Observatory Controls")
-selected_years = st.sidebar.multiselect("Select Horizon:", sorted(df["year"].unique(), reverse=True), default=[2023, 2024, 2025, 2026])
+selected_years = st.sidebar.multiselect("Select Horizon:", sorted(df["year"].unique(), reverse=True), default=[2024, 2025, 2026])
 selected_markets = st.sidebar.multiselect("Select Markets:", df["market"].unique(), default=df["market"].unique())
 
 filtered_df = df[(df["year"].isin(selected_years)) & (df["market"].isin(selected_markets))]
 
-# -----------------------------------------------------------------------------
-# 3. ADVANCED ACADEMIC NAVIGATION
-# -----------------------------------------------------------------------------
+# 3. NAVIGATION TABS
 tab_stl, tab_spatial, tab_volatility, tab_welfare, tab_about = st.tabs([
     "1. Time Series Decomposition",
-    "2. Market Integration & Arbitrage",
+    "2. Market Integration & Spatial Map",
     "3. Volatility & Risk (GARCH)",
     "4. Welfare & Laspeyres Index",
     "5. Institutional Framework"
 ])
 
-# =============================================================================
-# TAB 1: TIME SERIES DECOMPOSITION (STL)
-# =============================================================================
+# TAB 1: TIME SERIES DECOMPOSITION
 with tab_stl:
     st.subheader("Additive Time Series Decomposition ($P_t = T_t + S_t + I_t$)")
     target_p = st.selectbox("Select Commodity for Structural Analysis:", df["product"].unique())
@@ -135,13 +124,11 @@ with tab_stl:
     
     stl_df = df[(df["product"] == target_p) & (df["market"] == target_m)].sort_values("date").copy()
     
-    # Mathematical Component Isolation
     stl_df["Trend"] = stl_df["price_cdf"].rolling(window=12, center=True, min_periods=1).mean()
     stl_df["Detrended"] = stl_df["price_cdf"] - stl_df["Trend"]
     stl_df["Seasonal"] = stl_df.groupby("month")["Detrended"].transform("mean")
     stl_df["Irregular"] = stl_df["price_cdf"] - stl_df["Trend"] - stl_df["Seasonal"]
     
-    # 4-Panel Plotly Figure
     fig_stl = make_subplots(rows=4, cols=1, shared_xaxes=True, vertical_spacing=0.05,
                             subplot_titles=("Observed Price Series ($P_t$)", "Structural Trend ($T_t$)", 
                                             "Seasonal Component ($S_t$)", "Irregular Stochastic Shock ($I_t$)"))
@@ -151,27 +138,35 @@ with tab_stl:
     fig_stl.add_trace(go.Scatter(x=stl_df["date"], y=stl_df["Seasonal"], name="Seasonal", line=dict(color="#10B981")), row=3, col=1)
     fig_stl.add_trace(go.Scatter(x=stl_df["date"], y=stl_df["Irregular"], name="Residual", line=dict(color="#EF4444")), row=4, col=1)
     
-    fig_stl.update_layout(height=700, showlegend=False, margin=dict(l=10, r=10, t=40, b=10))
+    fig_stl.update_layout(height=650, showlegend=False, margin=dict(l=10, r=10, t=40, b=10))
     st.plotly_chart(fig_stl, use_container_width=True)
     
-    # Econometric Interpretation
     var_total = stl_df["price_cdf"].var()
     var_seasonal = stl_df["Seasonal"].var()
-    var_trend = stl_df["Trend"].var()
-    seasonal_contrib = (var_seasonal / var_total) * 100
+    seasonal_contrib = (var_seasonal / var_total) * 100 if var_total > 0 else 0
     
     st.markdown(f"""
     <div class="academic-card">
         <h4>Econometric Interpretation</h4>
         <p>The STL decomposition isolates structural driver components. For <strong>{target_p}</strong> in <strong>{target_m}</strong>, the seasonal variance accounts for <strong>{seasonal_contrib:.2f}%</strong> of total price volatility.</p>
-        <p>Peak price pressures systematically coincide with agricultural lean seasons (periods of supply shortages), whereas structural upward drifts reflect macroeconomic exchange-rate depreciation.</p>
+        <p>Peak price pressures systematically coincide with agricultural lean seasons, whereas structural upward drifts reflect macroeconomic exchange-rate depreciation.</p>
     </div>
     """, unsafe_allow_html=True)
 
-# =============================================================================
-# TAB 2: SPATIAL MARKET INTEGRATION & ARBITRAGE
-# =============================================================================
+# TAB 2: SPATIAL MARKET INTEGRATION & MAP
 with tab_spatial:
+    st.subheader("Market Infrastructure & Spatial Mapping")
+    
+    # Visual Cards for Markets
+    k_img = get_image_path("kadutu_market.jpg")
+    n_img = get_image_path("nyawera_market.jpg")
+    f_img = get_image_path("feu_vert_market.jpg")
+    
+    if k_img: st.image(k_img, caption="Kadutu Market (Primary Wholesale Hub)", use_container_width=True)
+    if n_img: st.image(n_img, caption="Nyawera Market (Urban Consumption Center)", use_container_width=True)
+    if f_img: st.image(f_img, caption="Feu Vert Market (Transit & Distribution Node)", use_container_width=True)
+        
+    st.markdown("---")
     st.subheader("Spatial Market Integration & Law of One Price (LOP)")
     st.latex(r"\ln(P_{i,t}) = \alpha + \beta \ln(P_{j,t}) + \varepsilon_t")
     
@@ -184,18 +179,23 @@ with tab_spatial:
     with col_m2:
         m_j = st.selectbox("Reference Market ($P_j$):", p_sp.columns, index=1)
         
-    # Log-Log Regression Estimation
-    x = p_sp[m_j]
-    y = p_sp[m_i]
+    x = p_sp[m_j].values
+    y = p_sp[m_i].values
+    
+    # Robust fit without statsmodels dependency
     beta, alpha = np.polyfit(x, y, 1)
     r_squared = np.corrcoef(x, y)[0, 1]**2
+    x_range = np.linspace(x.min(), x.max(), 100)
+    y_range = beta * x_range + alpha
     
-    fig_reg = px.scatter(x=x, y=y, labels={"x": f"Log Price {m_j}", "y": f"Log Price {m_i}"},
-                         title=f"Elasticity of Price Transmission ({m_i} vs {m_j})", trendline="ols")
-    fig_reg.update_layout(margin=dict(l=10, r=10, t=40, b=10))
+    fig_reg = go.Figure()
+    fig_reg.add_trace(go.Scatter(x=x, y=y, mode='markers', name='Observed Pairings', marker=dict(color='#0284C7')))
+    fig_reg.add_trace(go.Scatter(x=x_range, y=y_range, mode='lines', name=f'OLS Fit (β={beta:.2f})', line=dict(color='#EF4444', dash='dash')))
+    fig_reg.update_layout(title=f"Elasticity of Price Transmission ({m_i} vs {m_j})",
+                          xaxis_title=f"Log Price {m_j}", yaxis_title=f"Log Price {m_i}",
+                          margin=dict(l=10, r=10, t=40, b=10))
     st.plotly_chart(fig_reg, use_container_width=True)
     
-    # Correlation Heatmap
     st.markdown("#### Inter-Market Price Correlation Matrix ($R$)")
     corr_matrix = df[df["product"] == prod_spatial].pivot(index="date", columns="market", values="price_cdf").corr()
     fig_heat = px.imshow(corr_matrix, text_auto=".3f", color_continuous_scale="Blues")
@@ -213,9 +213,7 @@ with tab_spatial:
     </div>
     """, unsafe_allow_html=True)
 
-# =============================================================================
-# TAB 3: VOLATILITY & RISK (GARCH SPECIFICATION)
-# =============================================================================
+# TAB 3: VOLATILITY & RISK
 with tab_volatility:
     st.subheader("Conditional Variance Modeling (GARCH Proxy)")
     st.latex(r"\sigma_t^2 = \omega + \alpha \varepsilon_{t-1}^2 + \beta \sigma_{t-1}^2")
@@ -225,7 +223,6 @@ with tab_volatility:
     vol_df["returns"] = np.log(vol_df["price_cdf"] / vol_df["price_cdf"].shift(1))
     vol_df.dropna(inplace=True)
     
-    # Rolling Conditional Volatility Estimation
     vol_df["cond_volatility"] = vol_df["returns"].rolling(window=6).std() * np.sqrt(12)
     
     fig_vol = px.line(vol_df, x="date", y="cond_volatility",
@@ -235,21 +232,18 @@ with tab_volatility:
     fig_vol.update_layout(margin=dict(l=10, r=10, t=40, b=10))
     st.plotly_chart(fig_vol, use_container_width=True)
     
-    st.markdown(f"""
+    st.markdown("""
     <div class="academic-card">
         <h4>Risk Assessment & Vulnerability Implications</h4>
-        <p>Spikes in conditional variance represent periods of high market uncertainty and price risk. High persistence in volatility ($\alpha + \beta \approx 1$) signals prolonged shock absorption delays, directly exposing vulnerable households to acute food insecurity.</p>
+        <p>Spikes in conditional variance represent periods of high market uncertainty and price risk. High persistence in volatility signals prolonged shock absorption delays, directly exposing vulnerable households to acute food insecurity.</p>
     </div>
     """, unsafe_allow_html=True)
 
-# =============================================================================
 # TAB 4: WELFARE & LASPEYRES INDEX
-# =============================================================================
 with tab_welfare:
     st.subheader("Composite Household Welfare Index (Laspeyres)")
     st.latex(r"I_L = \frac{\sum (P_{i,t} \cdot Q_{i,0})}{\sum (P_{i,0} \cdot Q_{i,0})} \times 100")
     
-    # Calculate Laspeyres Index across time
     base_date = df["date"].min()
     base_prices = df[df["date"] == base_date].groupby("product")["price_cdf"].mean()
     weights = df.groupby("product")["weight"].first()
@@ -282,9 +276,7 @@ with tab_welfare:
     </div>
     """, unsafe_allow_html=True)
 
-# =============================================================================
-# TAB 5: INSTITUTIONAL FRAMEWORK & RESEARCHER CREDENTIALS
-# =============================================================================
+# TAB 5: INSTITUTIONAL FRAMEWORK
 with tab_about:
     st.subheader("Institutional Framework & Research Leadership")
     
@@ -308,8 +300,6 @@ with tab_about:
         </div>
         """, unsafe_allow_html=True)
 
-# -----------------------------------------------------------------------------
-# 4. FOOTER & CITATION
-# -----------------------------------------------------------------------------
+# FOOTER
 st.markdown("---")
 st.caption("Local Market Price Analytics (LMPA) Observatory | Research Initiative by Mapenzi Minani Josaphat | Kivu Data Lab")
