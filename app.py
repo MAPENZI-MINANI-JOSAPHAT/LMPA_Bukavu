@@ -155,16 +155,41 @@ with tab_stl:
 
 # TAB 2: SPATIAL MARKET INTEGRATION & MAP
 with tab_spatial:
-    st.subheader("Market Infrastructure & Spatial Mapping")
+    st.subheader("Market Infrastructure & Commodity Profiles")
     
-    # Visual Cards for Markets
-    k_img = get_image_path("kadutu_market.jpg")
-    n_img = get_image_path("nyawera_market.jpg")
-    f_img = get_image_path("feu_vert_market.jpg")
+    # Visual Cards for Commodity Basket
+    st.markdown("#### Tracked Food Commodities")
+    c1, c2, c3, c4 = st.columns(4)
     
-    if k_img: st.image(k_img, caption="Kadutu Market (Primary Wholesale Hub)", use_container_width=True)
-    if n_img: st.image(n_img, caption="Nyawera Market (Urban Consumption Center)", use_container_width=True)
-    if f_img: st.image(f_img, caption="Feu Vert Market (Transit & Distribution Node)", use_container_width=True)
+    with c1:
+        img = get_image_path("maize_flour.jpg")
+        if img: st.image(img, caption="Maize Flour (25kg)", use_container_width=True)
+        else: st.info("Maize Flour (25kg)")
+    with c2:
+        img = get_image_path("rice.jpg")
+        if img: st.image(img, caption="Imported Rice (1kg)", use_container_width=True)
+        else: st.info("Imported Rice (1kg)")
+    with c3:
+        img = get_image_path("red_beans.jpg")
+        if img: st.image(img, caption="Red Beans (1kg)", use_container_width=True)
+        else: st.info("Red Beans (1kg)")
+    with c4:
+        img = get_image_path("vegetable_oil.jpg")
+        if img: st.image(img, caption="Vegetable Oil (5L)", use_container_width=True)
+        else: st.info("Vegetable Oil (5L)")
+
+    st.markdown("---")
+    st.markdown("#### Physical Markets under Observation")
+    m1, m2, m3 = st.columns(3)
+    with m1:
+        img = get_image_path("kadutu_market.jpg")
+        if img: st.image(img, caption="Kadutu Market (Wholesale Hub)", use_container_width=True)
+    with m2:
+        img = get_image_path("nyawera_market.jpg")
+        if img: st.image(img, caption="Nyawera Market (Urban Consumption)", use_container_width=True)
+    with m3:
+        img = get_image_path("feu_vert_market.jpg")
+        if img: st.image(img, caption="Feu Vert Market (Transit Node)", use_container_width=True)
         
     st.markdown("---")
     st.subheader("Spatial Market Integration & Law of One Price (LOP)")
@@ -195,11 +220,21 @@ with tab_spatial:
                           margin=dict(l=10, r=10, t=40, b=10))
     st.plotly_chart(fig_reg, use_container_width=True)
     
-    st.markdown("#### Inter-Market Price Correlation Matrix (R)")
-    corr_matrix = df[df["product"] == prod_spatial].pivot(index="date", columns="market", values="price_cdf").corr()
-    fig_heat = px.imshow(corr_matrix, text_auto=".3f", color_continuous_scale="Blues")
-    fig_heat.update_layout(margin=dict(l=10, r=10, t=40, b=10))
-    st.plotly_chart(fig_heat, use_container_width=True)
+    col_graph1, col_graph2 = st.columns(2)
+    
+    with col_graph1:
+        st.markdown("#### Inter-Market Correlation Matrix")
+        corr_matrix = df[df["product"] == prod_spatial].pivot(index="date", columns="market", values="price_cdf").corr()
+        fig_heat = px.imshow(corr_matrix, text_auto=".3f", color_continuous_scale="Blues")
+        fig_heat.update_layout(margin=dict(l=10, r=10, t=40, b=10))
+        st.plotly_chart(fig_heat, use_container_width=True)
+        
+    with col_graph2:
+        st.markdown("#### Price Dispersion Across Markets")
+        fig_box = px.box(filtered_df[filtered_df["product"] == prod_spatial], x="market", y="price_cdf", color="market",
+                         labels={"price_cdf": "Price (CDF)", "market": "Market"})
+        fig_box.update_layout(margin=dict(l=10, r=10, t=40, b=10), showlegend=False)
+        st.plotly_chart(fig_box, use_container_width=True)
     
     st.markdown(f"""
     <div class="academic-card">
@@ -208,7 +243,7 @@ with tab_spatial:
             <li><strong>Transmission Elasticity (β):</strong> {beta:.4f}</li>
             <li><strong>Coefficient of Determination (R²):</strong> {r_squared:.4f}</li>
         </ul>
-        <p>A transmission coefficient of <strong>β = {beta:.4f}</strong> indicates that a 1% price increase in {m_j} translates to a {beta:.2f}% shift in {m_i}. Values below unity highlight transaction costs, transport friction, and localized market power.</p>
+        <p>A transmission coefficient of <strong>β = {beta:.4f}</strong> indicates that a 1% price increase in {m_j} translates to a {beta:.2f}% shift in {m_i}. The boxplot visualization highlights price dispersion across urban centers driven by internal transport logistics.</p>
     </div>
     """, unsafe_allow_html=True)
 
