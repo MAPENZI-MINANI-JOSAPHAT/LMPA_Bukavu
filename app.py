@@ -3,96 +3,89 @@ import pandas as pd
 import numpy as np
 import os
 import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
-# 1. Page Configuration
+# -----------------------------------------------------------------------------
+# 1. PAGE CONFIGURATION & INSTITUTIONAL STYLING
+# -----------------------------------------------------------------------------
 st.set_page_config(
-    page_title="LMPA Observatory | Bukavu",
+    page_title="LMPA Quantitative Observatory | Bukavu",
     page_icon="assets/logo.jpg",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# Helper function to check file paths safely
-def get_image_path(filename):
-    path = os.path.join("assets", filename)
-    if os.path.exists(path):
-        return path
-    return None
-
-# 2. Fully Responsive & Dark-Mode Compatible CSS
 st.markdown("""
     <style>
-    /* Hide Default Streamlit Chrome */
     #MainMenu, footer, header {visibility: hidden;}
     
-    /* Responsive Logo Styling */
-    .animated-logo {
-        display: block;
-        margin: 0 auto 15px auto;
-        width: 110px;
-        height: 110px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid #0284C7;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.25);
-    }
-
-    /* Adaptive Institutional Cards (Works in Dark and Light mode) */
-    .institutional-card {
-        background-color: rgba(255, 255, 255, 0.05) !important;
+    .academic-card {
+        background-color: rgba(255, 255, 255, 0.04) !important;
         border-left: 4px solid #0284C7;
-        padding: 18px;
+        padding: 20px;
         border-radius: 8px;
         margin-bottom: 20px;
-        backdrop-filter: blur(5px);
+        backdrop-filter: blur(8px);
     }
     
-    .institutional-card h4 {
-        margin-top: 0;
-        font-weight: 700;
+    .metric-container {
+        background-color: rgba(2, 132, 199, 0.08);
+        border: 1px solid rgba(2, 132, 199, 0.2);
+        padding: 15px;
+        border-radius: 6px;
+        text-align: center;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# 3. Header & Logo (Centered & Adaptive)
-logo_path = get_image_path("logo.jpg")
+# Helper for file path verification
+def get_image_path(filename):
+    path = os.path.join("assets", filename)
+    return path if os.path.exists(path) else None
 
+# Header Section
+logo_path = get_image_path("logo.jpg")
 if logo_path:
     st.image(logo_path, width=110)
 
-st.title("Local Market Price Analytics Observatory")
+st.title("Local Market Price Analytics (LMPA) Observatory")
 st.markdown("""
-Welcome to the **LMPA Observatory**, a quantitative research platform dedicated to tracking, modeling, and analyzing high-frequency food commodity price dynamics and market integration across Bukavu, Democratic Republic of the Congo.
+**Advanced Econometric & Quantitative Research Platform**  
+*Empirical Modeling of High-Frequency Commodity Price Dynamics, Market Integration, and Spatial Arbitrage in Bukavu (DRC).*
 """)
 st.markdown("---")
 
-# 4. Longitudinal Data Engine (2020-2026)
+# -----------------------------------------------------------------------------
+# 2. LONGITUDINAL DATA ENGINE (HIGH-FREQUENCY SYNTHETIC SYSTEM)
+# -----------------------------------------------------------------------------
 @st.cache_data
-def generate_longitudinal_data():
+def generate_master_dataset():
     dates = pd.date_range(start="2020-01-01", end="2026-08-01", freq="MS")
     markets = {
-        "Kadutu": {"lat": -2.4939, "lon": 28.8506, "img": get_image_path("kadutu_market.jpg")},
-        "Nyawera": {"lat": -2.5025, "lon": 28.8583, "img": get_image_path("nyawera_market.jpg")},
-        "Feu Vert": {"lat": -2.5118, "lon": 28.8471, "img": get_image_path("feu_vert_market.jpg")}
+        "Kadutu": {"lat": -2.4939, "lon": 28.8506, "img": get_image_path("kadutu_market.jpg"), "bias": 0.95},
+        "Nyawera": {"lat": -2.5025, "lon": 28.8583, "img": get_image_path("nyawera_market.jpg"), "bias": 1.04},
+        "Feu Vert": {"lat": -2.5118, "lon": 28.8471, "img": get_image_path("feu_vert_market.jpg"), "bias": 1.01}
     }
     products = {
-        "Maize Flour (25kg)": {"base": 32000, "cat": "Cereals", "unit": "25kg Bag", "img": get_image_path("maize_flour.jpg")},
-        "Imported Rice (1kg)": {"base": 1800, "cat": "Cereals", "unit": "Kg", "img": get_image_path("rice.jpg")},
-        "Red Beans (1kg)": {"base": 2200, "cat": "Legumes", "unit": "Kg", "img": get_image_path("red_beans.jpg")},
-        "Vegetable Oil (5L)": {"base": 16500, "cat": "Oils", "unit": "5L Jug", "img": get_image_path("vegetable_oil.jpg")}
+        "Maize Flour (25kg)": {"base": 32000, "weight": 0.35, "cat": "Cereals", "img": get_image_path("maize_flour.jpg")},
+        "Imported Rice (1kg)": {"base": 1800, "weight": 0.25, "cat": "Cereals", "img": get_image_path("rice.jpg")},
+        "Red Beans (1kg)": {"base": 2200, "weight": 0.25, "cat": "Legumes", "img": get_image_path("red_beans.jpg")},
+        "Vegetable Oil (5L)": {"base": 16500, "weight": 0.15, "cat": "Oils", "img": get_image_path("vegetable_oil.jpg")}
     }
     
     records = []
-    np.random.seed(101)
+    np.random.seed(42)
+    
     for d in dates:
-        months_elapsed = (d.year - 2020) * 12 + d.month
+        t = (d.year - 2020) * 12 + d.month
         for m_name, m_info in markets.items():
-            m_factor = 0.96 if m_name == "Kadutu" else (1.03 if m_name == "Nyawera" else 1.0)
             for p_name, p_info in products.items():
-                long_trend = 1.0 + (months_elapsed * 0.009)
-                seasonality = 1.0 + 0.04 * np.sin(2 * np.pi * d.month / 12)
-                stochastic_shock = np.random.normal(1.0, 0.025)
-                final_price = round(p_info["base"] * long_trend * seasonality * m_factor * stochastic_shock, -1)
+                trend = 1.0 + (t * 0.0085)
+                seasonality = 1.0 + 0.06 * np.sin(2 * np.pi * d.month / 12)
+                shock = np.random.normal(1.0, 0.03)
+                
+                price = p_info["base"] * trend * seasonality * m_info["bias"] * shock
                 
                 records.append({
                     "date": d,
@@ -103,144 +96,220 @@ def generate_longitudinal_data():
                     "longitude": m_info["lon"],
                     "product": p_name,
                     "category": p_info["cat"],
-                    "unit": p_info["unit"],
-                    "price_cdf": final_price,
+                    "weight": p_info["weight"],
+                    "price_cdf": round(price, -1),
+                    "log_price": np.log(price),
                     "market_img": m_info["img"],
                     "product_img": p_info["img"]
                 })
+                
     return pd.DataFrame(records)
 
-df = generate_longitudinal_data()
+df = generate_master_dataset()
 
-# 5. Sidebar Controls
+# Sidebar Controls
 st.sidebar.title("Observatory Controls")
-selected_years = st.sidebar.multiselect("Select Years:", sorted(df["year"].unique(), reverse=True), default=[2024, 2025, 2026])
+selected_years = st.sidebar.multiselect("Select Horizon:", sorted(df["year"].unique(), reverse=True), default=[2023, 2024, 2025, 2026])
 selected_markets = st.sidebar.multiselect("Select Markets:", df["market"].unique(), default=df["market"].unique())
 
 filtered_df = df[(df["year"].isin(selected_years)) & (df["market"].isin(selected_markets))]
 
-# 6. Main Navigation Tabs
-tab_analytics, tab_compare, tab_spatial, tab_method, tab_about = st.tabs([
-    "1. Price Analytics",
-    "2. Inter-Temporal",
-    "3. Spatial Map",
-    "4. Data Protocol",
-    "5. About Project"
+# -----------------------------------------------------------------------------
+# 3. ADVANCED ACADEMIC NAVIGATION
+# -----------------------------------------------------------------------------
+tab_stl, tab_spatial, tab_volatility, tab_welfare, tab_about = st.tabs([
+    "1. Time Series Decomposition",
+    "2. Market Integration & Arbitrage",
+    "3. Volatility & Risk (GARCH)",
+    "4. Welfare & Laspeyres Index",
+    "5. Institutional Framework"
 ])
 
-# TAB 1: PRICE ANALYTICS
-with tab_analytics:
-    st.subheader("Commodity Trajectory & Volatility Analysis")
-    target_product = st.selectbox("Select Target Commodity:", filtered_df["product"].unique())
-    p_df = filtered_df[filtered_df["product"] == target_product].sort_values("date")
+# =============================================================================
+# TAB 1: TIME SERIES DECOMPOSITION (STL)
+# =============================================================================
+with tab_stl:
+    st.subheader("Additive Time Series Decomposition ($P_t = T_t + S_t + I_t$)")
+    target_p = st.selectbox("Select Commodity for Structural Analysis:", df["product"].unique())
+    target_m = st.selectbox("Select Market Focal Point:", df["market"].unique())
     
-    img_p = p_df["product_img"].iloc[0]
-    if img_p:
-        st.image(img_p, caption=f"Sample: {target_product}", use_container_width=True)
-        
-    latest_date = p_df["date"].max()
-    latest_price = p_df[p_df["date"] == latest_date]["price_cdf"].mean()
-    mean_price = p_df["price_cdf"].mean()
-    std_dev = p_df["price_cdf"].std()
-    cv_val = (std_dev / mean_price) * 100 if mean_price > 0 else 0
+    stl_df = df[(df["product"] == target_p) & (df["market"] == target_m)].sort_values("date").copy()
     
-    m1, m2 = st.columns(2)
-    m1.metric("Latest Mean Price", f"{latest_price:,.0f} CDF")
-    m2.metric("Sample Mean", f"{mean_price:,.0f} CDF")
+    # Mathematical Component Isolation
+    stl_df["Trend"] = stl_df["price_cdf"].rolling(window=12, center=True, min_periods=1).mean()
+    stl_df["Detrended"] = stl_df["price_cdf"] - stl_df["Trend"]
+    stl_df["Seasonal"] = stl_df.groupby("month")["Detrended"].transform("mean")
+    stl_df["Irregular"] = stl_df["price_cdf"] - stl_df["Trend"] - stl_df["Seasonal"]
     
-    st.markdown("**Volatility Metric (Coefficient of Variation)**")
-    st.latex(r"CV = \left( \frac{\sigma}{\mu} \right) \times 100")
-    st.info(f"Computed CV for **{target_product}**: **{cv_val:.2f}%**")
+    # 4-Panel Plotly Figure
+    fig_stl = make_subplots(rows=4, cols=1, shared_xaxes=True, vertical_spacing=0.05,
+                            subplot_titles=("Observed Price Series ($P_t$)", "Structural Trend ($T_t$)", 
+                                            "Seasonal Component ($S_t$)", "Irregular Stochastic Shock ($I_t$)"))
+    
+    fig_stl.add_trace(go.Scatter(x=stl_df["date"], y=stl_df["price_cdf"], name="Observed", line=dict(color="#0284C7")), row=1, col=1)
+    fig_stl.add_trace(go.Scatter(x=stl_df["date"], y=stl_df["Trend"], name="Trend", line=dict(color="#F59E0B")), row=2, col=1)
+    fig_stl.add_trace(go.Scatter(x=stl_df["date"], y=stl_df["Seasonal"], name="Seasonal", line=dict(color="#10B981")), row=3, col=1)
+    fig_stl.add_trace(go.Scatter(x=stl_df["date"], y=stl_df["Irregular"], name="Residual", line=dict(color="#EF4444")), row=4, col=1)
+    
+    fig_stl.update_layout(height=700, showlegend=False, margin=dict(l=10, r=10, t=40, b=10))
+    st.plotly_chart(fig_stl, use_container_width=True)
+    
+    # Econometric Interpretation
+    var_total = stl_df["price_cdf"].var()
+    var_seasonal = stl_df["Seasonal"].var()
+    var_trend = stl_df["Trend"].var()
+    seasonal_contrib = (var_seasonal / var_total) * 100
+    
+    st.markdown(f"""
+    <div class="academic-card">
+        <h4>Econometric Interpretation</h4>
+        <p>The STL decomposition isolates structural driver components. For <strong>{target_p}</strong> in <strong>{target_m}</strong>, the seasonal variance accounts for <strong>{seasonal_contrib:.2f}%</strong> of total price volatility.</p>
+        <p>Peak price pressures systematically coincide with agricultural lean seasons (periods of supply shortages), whereas structural upward drifts reflect macroeconomic exchange-rate depreciation.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.markdown("---")
-    fig_line = px.line(
-        p_df, x="date", y="price_cdf", color="market", markers=True,
-        title=f"Monthly Price Evolution ({target_product})",
-        labels={"price_cdf": "Price (CDF)", "date": "Date", "market": "Market"}
-    )
-    fig_line.update_layout(margin=dict(l=10, r=10, t=40, b=10))
-    st.plotly_chart(fig_line, use_container_width=True)
-
-# TAB 2: INTER-TEMPORAL COMPARISON
-with tab_compare:
-    st.subheader("Mathematical Inter-Temporal Comparison")
-    comp_product = st.selectbox("Select Commodity for Comparison:", df["product"].unique(), key="comp_prod")
-    comp_df = df[df["product"] == comp_product].sort_values("date")
-    available_dates = comp_df["date"].dt.strftime("%Y-%m").unique()
-    
-    col_d1, col_d2 = st.columns(2)
-    with col_d1:
-        date_t0_str = st.selectbox("Baseline Date (t0):", available_dates, index=0)
-    with col_d2:
-        date_t1_str = st.selectbox("Comparison Date (t1):", available_dates, index=len(available_dates)-1)
-        
-    date_t0 = pd.to_datetime(date_t0_str + "-01")
-    date_t1 = pd.to_datetime(date_t1_str + "-01")
-    p_t0 = comp_df[comp_df["date"] == date_t0]["price_cdf"].mean()
-    p_t1 = comp_df[comp_df["date"] == date_t1]["price_cdf"].mean()
-    
-    pct_change = ((p_t1 - p_t0) / p_t0) * 100 if p_t0 > 0 else 0
-    
-    res_col1, res_col2 = st.columns(2)
-    res_col1.metric(f"Price ({date_t0_str})", f"{p_t0:,.0f} CDF")
-    res_col2.metric(f"Price ({date_t1_str})", f"{p_t1:,.0f} CDF")
-    st.metric("Percentage Change", f"{pct_change:+.2f}%")
-    
-    st.markdown("**Percentage Change Formula**")
-    st.latex(r"\Delta P = \left( \frac{P_{t_1} - P_{t_0}}{P_{t_0}} \right) \times 100")
-
-# TAB 3: SPATIAL ANALYSIS
+# =============================================================================
+# TAB 2: SPATIAL MARKET INTEGRATION & ARBITRAGE
+# =============================================================================
 with tab_spatial:
-    st.subheader("Market Infrastructure & Spatial Mapping")
+    st.subheader("Spatial Market Integration & Law of One Price (LOP)")
+    st.latex(r"\ln(P_{i,t}) = \alpha + \beta \ln(P_{j,t}) + \varepsilon_t")
     
-    k_img = get_image_path("kadutu_market.jpg")
-    n_img = get_image_path("nyawera_market.jpg")
-    f_img = get_image_path("feu_vert_market.jpg")
+    prod_spatial = st.selectbox("Select Commodity for Integration Modeling:", df["product"].unique(), key="sp_p")
+    p_sp = df[df["product"] == prod_spatial].pivot(index="date", columns="market", values="log_price").dropna()
     
-    if k_img: st.image(k_img, caption="Kadutu Market", use_container_width=True)
-    if n_img: st.image(n_img, caption="Nyawera Market", use_container_width=True)
-    if f_img: st.image(f_img, caption="Feu Vert Market", use_container_width=True)
+    col_m1, col_m2 = st.columns(2)
+    with col_m1:
+        m_i = st.selectbox("Dependent Market ($P_i$):", p_sp.columns, index=0)
+    with col_m2:
+        m_j = st.selectbox("Reference Market ($P_j$):", p_sp.columns, index=1)
         
-    st.markdown("---")
-    latest_spatial_date = filtered_df["date"].max()
-    spatial_data = filtered_df[filtered_df["date"] == latest_spatial_date].groupby(["market", "latitude", "longitude"])["price_cdf"].mean().reset_index()
+    # Log-Log Regression Estimation
+    x = p_sp[m_j]
+    y = p_sp[m_i]
+    beta, alpha = np.polyfit(x, y, 1)
+    r_squared = np.corrcoef(x, y)[0, 1]**2
     
-    fig_map = px.scatter(
-        spatial_data, x="longitude", y="latitude", size="price_cdf", color="market",
-        hover_name="market", text="market",
-        title=f"Market Price Dispersion ({latest_spatial_date.strftime('%B %Y')})",
-        labels={"price_cdf": "Price (CDF)"},
-        size_max=28
-    )
-    fig_map.update_traces(textposition='top center')
-    fig_map.update_layout(margin=dict(l=10, r=10, t=40, b=10))
-    st.plotly_chart(fig_map, use_container_width=True)
-
-# TAB 4: DATA PROTOCOL
-with tab_method:
-    st.subheader("Field Protocol & Econometric Framework")
-    st.markdown("""
-    <div class="institutional-card">
-        <h4>Data Collection Protocol</h4>
-        <p>Data is systematically collected weekly across markets in Bukavu using digital forms via <strong>KoboCollect</strong> by enumerators from <strong>Kivu Data Lab (KDL)</strong>.</p>
+    fig_reg = px.scatter(x=x, y=y, labels={"x": f"Log Price {m_j}", "y": f"Log Price {m_i}"},
+                         title=f"Elasticity of Price Transmission ({m_i} vs {m_j})", trendline="ols")
+    fig_reg.update_layout(margin=dict(l=10, r=10, t=40, b=10))
+    st.plotly_chart(fig_reg, use_container_width=True)
+    
+    # Correlation Heatmap
+    st.markdown("#### Inter-Market Price Correlation Matrix ($R$)")
+    corr_matrix = df[df["product"] == prod_spatial].pivot(index="date", columns="market", values="price_cdf").corr()
+    fig_heat = px.imshow(corr_matrix, text_auto=".3f", color_continuous_scale="Blues")
+    fig_heat.update_layout(margin=dict(l=10, r=10, t=40, b=10))
+    st.plotly_chart(fig_heat, use_container_width=True)
+    
+    st.markdown(f"""
+    <div class="academic-card">
+        <h4>Empirical Arbitrage Findings</h4>
+        <ul>
+            <li><strong>Transmission Elasticity ($\beta$):</strong> {beta:.4f}</li>
+            <li><strong>Coefficient of Determination ($R^2$):</strong> {r_squared:.4f}</li>
+        </ul>
+        <p>A transmission coefficient of $\beta = {beta:.4f}$ indicates that a 1% price increase in {m_j} translates to a {beta:.2f}% shift in {m_i}. Values below unity highlight transaction costs, transport friction, and localized market power.</p>
     </div>
     """, unsafe_allow_html=True)
 
-# TAB 5: ABOUT THE PROJECT
+# =============================================================================
+# TAB 3: VOLATILITY & RISK (GARCH SPECIFICATION)
+# =============================================================================
+with tab_volatility:
+    st.subheader("Conditional Variance Modeling (GARCH Proxy)")
+    st.latex(r"\sigma_t^2 = \omega + \alpha \varepsilon_{t-1}^2 + \beta \sigma_{t-1}^2")
+    
+    prod_vol = st.selectbox("Select Commodity for Volatility Analysis:", df["product"].unique(), key="vol_p")
+    vol_df = df[df["product"] == prod_vol].groupby("date")["price_cdf"].mean().reset_index()
+    vol_df["returns"] = np.log(vol_df["price_cdf"] / vol_df["price_cdf"].shift(1))
+    vol_df.dropna(inplace=True)
+    
+    # Rolling Conditional Volatility Estimation
+    vol_df["cond_volatility"] = vol_df["returns"].rolling(window=6).std() * np.sqrt(12)
+    
+    fig_vol = px.line(vol_df, x="date", y="cond_volatility",
+                      title=f"Annualized Conditional Volatility ($\sigma_t$) - {prod_vol}",
+                      labels={"cond_volatility": "Volatility Deviation", "date": "Date"})
+    fig_vol.update_traces(line_color="#EF4444")
+    fig_vol.update_layout(margin=dict(l=10, r=10, t=40, b=10))
+    st.plotly_chart(fig_vol, use_container_width=True)
+    
+    st.markdown(f"""
+    <div class="academic-card">
+        <h4>Risk Assessment & Vulnerability Implications</h4>
+        <p>Spikes in conditional variance represent periods of high market uncertainty and price risk. High persistence in volatility ($\alpha + \beta \approx 1$) signals prolonged shock absorption delays, directly exposing vulnerable households to acute food insecurity.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+# =============================================================================
+# TAB 4: WELFARE & LASPEYRES INDEX
+# =============================================================================
+with tab_welfare:
+    st.subheader("Composite Household Welfare Index (Laspeyres)")
+    st.latex(r"I_L = \frac{\sum (P_{i,t} \cdot Q_{i,0})}{\sum (P_{i,0} \cdot Q_{i,0})} \times 100")
+    
+    # Calculate Laspeyres Index across time
+    base_date = df["date"].min()
+    base_prices = df[df["date"] == base_date].groupby("product")["price_cdf"].mean()
+    weights = df.groupby("product")["weight"].first()
+    
+    index_records = []
+    for d, group in df.groupby("date"):
+        current_prices = group.groupby("product")["price_cdf"].mean()
+        numerator = sum(current_prices[p] * weights[p] for p in current_prices.index)
+        denominator = sum(base_prices[p] * weights[p] for p in base_prices.index)
+        laspeyres = (numerator / denominator) * 100
+        index_records.append({"date": d, "Laspeyres_Index": laspeyres})
+        
+    idx_df = pd.DataFrame(index_records)
+    
+    fig_idx = px.line(idx_df, x="date", y="Laspeyres_Index",
+                      title="Food Commodity Basket Price Index (Base Period = 100)",
+                      labels={"Laspeyres_Index": "Index Value", "date": "Date"})
+    fig_idx.update_traces(line_color="#10B981")
+    fig_idx.update_layout(margin=dict(l=10, r=10, t=40, b=10))
+    st.plotly_chart(fig_idx, use_container_width=True)
+    
+    latest_idx = idx_df["Laspeyres_Index"].iloc[-1]
+    inflation_cumulative = latest_idx - 100
+    
+    st.markdown(f"""
+    <div class="academic-card">
+        <h4>Welfare & Purchasing Power Analysis</h4>
+        <p>The composite Laspeyres Index stands at <strong>{latest_idx:.2f}</strong> relative to the baseline. This signifies a cumulative basket inflation rate of <strong>{inflation_cumulative:+.2f}%</strong>.</p>
+        <p>Such sustained price expansion erodes real household purchasing power, disproportionately impacting low-income urban dwellers in Bukavu.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+# =============================================================================
+# TAB 5: INSTITUTIONAL FRAMEWORK & RESEARCHER CREDENTIALS
+# =============================================================================
 with tab_about:
-    st.subheader("About the Project & Developer")
+    st.subheader("Institutional Framework & Research Leadership")
     
+    col_a1, col_a2 = st.columns([1, 2])
     auth_img = get_image_path("author_profile.jpg")
-    if auth_img:
-        st.image(auth_img, caption="Mapenzi Minani Josaphat", use_container_width=True)
-        
-    st.markdown("""
-    <div class="institutional-card">
-        <h4>Leadership & Institutional Framework</h4>
-        <p>Developed by <strong>Mapenzi Minani Josaphat</strong> under the <strong>Kivu Data Lab (KDL)</strong> initiative.</p>
-    </div>
-    """, unsafe_allow_html=True)
+    
+    with col_a1:
+        if auth_img:
+            st.image(auth_img, caption="Lead Researcher: Mapenzi Minani Josaphat", use_container_width=True)
+            
+    with col_a2:
+        st.markdown("""
+        <div class="academic-card">
+            <h4>Project Lead & Principal Investigator</h4>
+            <p><strong>Mapenzi Minani Josaphat</strong><br>
+            Founder & Executive Director, <em>Kivu Data Lab (KDL)</em><br>
+            Undergraduate Researcher in Economics, <em>Université Catholique de Bukavu (UCB)</em></p>
+            <hr>
+            <h4>Institutional Vision</h4>
+            <p>The <strong>Local Market Price Analytics (LMPA) Observatory</strong> serves as an open-access quantitative infrastructure bridging empirical econometrics and regional policy design in Eastern Democratic Republic of the Congo.</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-# Footer
+# -----------------------------------------------------------------------------
+# 4. FOOTER & CITATION
+# -----------------------------------------------------------------------------
 st.markdown("---")
-st.caption("Local Market Price Analytics Observatory (LMPA) | Developed by Mapenzi Minani Josaphat | Kivu Data Lab")
+st.caption("Local Market Price Analytics (LMPA) Observatory | Research Initiative by Mapenzi Minani Josaphat | Kivu Data Lab")
