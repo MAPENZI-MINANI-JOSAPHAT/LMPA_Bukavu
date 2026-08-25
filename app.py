@@ -118,7 +118,7 @@ tab_stl, tab_spatial, tab_volatility, tab_welfare, tab_about = st.tabs([
 
 # TAB 1: TIME SERIES DECOMPOSITION
 with tab_stl:
-    st.subheader("Additive Time Series Decomposition ($P_t = T_t + S_t + I_t$)")
+    st.subheader("Additive Time Series Decomposition (Pₜ = Tₜ + Sₜ + Iₜ)")
     target_p = st.selectbox("Select Commodity for Structural Analysis:", df["product"].unique())
     target_m = st.selectbox("Select Market Focal Point:", df["market"].unique())
     
@@ -130,8 +130,8 @@ with tab_stl:
     stl_df["Irregular"] = stl_df["price_cdf"] - stl_df["Trend"] - stl_df["Seasonal"]
     
     fig_stl = make_subplots(rows=4, cols=1, shared_xaxes=True, vertical_spacing=0.05,
-                            subplot_titles=("Observed Price Series ($P_t$)", "Structural Trend ($T_t$)", 
-                                            "Seasonal Component ($S_t$)", "Irregular Stochastic Shock ($I_t$)"))
+                            subplot_titles=("Observed Price Series (Pₜ)", "Structural Trend (Tₜ)", 
+                                            "Seasonal Component (Sₜ)", "Irregular Stochastic Shock (Iₜ)"))
     
     fig_stl.add_trace(go.Scatter(x=stl_df["date"], y=stl_df["price_cdf"], name="Observed", line=dict(color="#0284C7")), row=1, col=1)
     fig_stl.add_trace(go.Scatter(x=stl_df["date"], y=stl_df["Trend"], name="Trend", line=dict(color="#F59E0B")), row=2, col=1)
@@ -175,14 +175,13 @@ with tab_spatial:
     
     col_m1, col_m2 = st.columns(2)
     with col_m1:
-        m_i = st.selectbox("Dependent Market ($P_i$):", p_sp.columns, index=0)
+        m_i = st.selectbox("Dependent Market (Pᵢ):", p_sp.columns, index=0)
     with col_m2:
-        m_j = st.selectbox("Reference Market ($P_j$):", p_sp.columns, index=1)
+        m_j = st.selectbox("Reference Market (Pⱼ):", p_sp.columns, index=1)
         
     x = p_sp[m_j].values
     y = p_sp[m_i].values
     
-    # Robust fit without statsmodels dependency
     beta, alpha = np.polyfit(x, y, 1)
     r_squared = np.corrcoef(x, y)[0, 1]**2
     x_range = np.linspace(x.min(), x.max(), 100)
@@ -190,13 +189,13 @@ with tab_spatial:
     
     fig_reg = go.Figure()
     fig_reg.add_trace(go.Scatter(x=x, y=y, mode='markers', name='Observed Pairings', marker=dict(color='#0284C7')))
-    fig_reg.add_trace(go.Scatter(x=x_range, y=y_range, mode='lines', name=f'OLS Fit (β={beta:.2f})', line=dict(color='#EF4444', dash='dash')))
+    fig_reg.add_trace(go.Scatter(x=x_range, y=y_range, mode='lines', name=f'OLS Fit (β = {beta:.2f})', line=dict(color='#EF4444', dash='dash')))
     fig_reg.update_layout(title=f"Elasticity of Price Transmission ({m_i} vs {m_j})",
                           xaxis_title=f"Log Price {m_j}", yaxis_title=f"Log Price {m_i}",
                           margin=dict(l=10, r=10, t=40, b=10))
     st.plotly_chart(fig_reg, use_container_width=True)
     
-    st.markdown("#### Inter-Market Price Correlation Matrix ($R$)")
+    st.markdown("#### Inter-Market Price Correlation Matrix (R)")
     corr_matrix = df[df["product"] == prod_spatial].pivot(index="date", columns="market", values="price_cdf").corr()
     fig_heat = px.imshow(corr_matrix, text_auto=".3f", color_continuous_scale="Blues")
     fig_heat.update_layout(margin=dict(l=10, r=10, t=40, b=10))
@@ -206,10 +205,10 @@ with tab_spatial:
     <div class="academic-card">
         <h4>Empirical Arbitrage Findings</h4>
         <ul>
-            <li><strong>Transmission Elasticity ($\beta$):</strong> {beta:.4f}</li>
-            <li><strong>Coefficient of Determination ($R^2$):</strong> {r_squared:.4f}</li>
+            <li><strong>Transmission Elasticity (β):</strong> {beta:.4f}</li>
+            <li><strong>Coefficient of Determination (R²):</strong> {r_squared:.4f}</li>
         </ul>
-        <p>A transmission coefficient of $\beta = {beta:.4f}$ indicates that a 1% price increase in {m_j} translates to a {beta:.2f}% shift in {m_i}. Values below unity highlight transaction costs, transport friction, and localized market power.</p>
+        <p>A transmission coefficient of <strong>β = {beta:.4f}</strong> indicates that a 1% price increase in {m_j} translates to a {beta:.2f}% shift in {m_i}. Values below unity highlight transaction costs, transport friction, and localized market power.</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -226,7 +225,7 @@ with tab_volatility:
     vol_df["cond_volatility"] = vol_df["returns"].rolling(window=6).std() * np.sqrt(12)
     
     fig_vol = px.line(vol_df, x="date", y="cond_volatility",
-                      title=f"Annualized Conditional Volatility ($\sigma_t$) - {prod_vol}",
+                      title=f"Annualized Conditional Volatility (σₜ) - {prod_vol}",
                       labels={"cond_volatility": "Volatility Deviation", "date": "Date"})
     fig_vol.update_traces(line_color="#EF4444")
     fig_vol.update_layout(margin=dict(l=10, r=10, t=40, b=10))
